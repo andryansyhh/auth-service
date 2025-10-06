@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/andryansyhh/auth-service/internal/domain/dto"
-	"github.com/andryansyhh/auth-service/internal/domain/model"
-	"github.com/andryansyhh/auth-service/internal/middleware"
-	"github.com/andryansyhh/auth-service/internal/repository"
+	"github.com/andryansyhh/auth-service/pkg/domain/dto"
+	"github.com/andryansyhh/auth-service/pkg/domain/model"
+	"github.com/andryansyhh/auth-service/pkg/middleware"
+	"github.com/andryansyhh/auth-service/pkg/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 

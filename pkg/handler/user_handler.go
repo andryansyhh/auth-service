@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/andryansyhh/auth-service/internal/domain/dto"
-	"github.com/andryansyhh/auth-service/internal/middleware"
-	"github.com/andryansyhh/auth-service/internal/usecase"
+	"github.com/andryansyhh/auth-service/pkg/domain/dto"
+	"github.com/andryansyhh/auth-service/pkg/middleware"
+	"github.com/andryansyhh/auth-service/pkg/usecase"
 	"github.com/gin-gonic/gin"
 )
 

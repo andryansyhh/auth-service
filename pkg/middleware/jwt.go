@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/andryansyhh/auth-service/internal/domain/model"
+	"github.com/andryansyhh/auth-service/pkg/domain/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 
