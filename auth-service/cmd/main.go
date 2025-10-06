@@ -1,14 +1,14 @@
 package main
 
 import (
-	"auth-service/config"
-	"auth-service/internal/handler"
-	"auth-service/internal/middleware"
-	"auth-service/internal/repository"
-	"auth-service/internal/usecase"
 	"fmt"
 	"log"
 
+	"github.com/andryansyhh/auth-service/cmd/config"
+	"github.com/andryansyhh/auth-service/internal/handler"
+	"github.com/andryansyhh/auth-service/internal/middleware"
+	"github.com/andryansyhh/auth-service/internal/repository"
+	"github.com/andryansyhh/auth-service/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"

@@ -1,13 +1,13 @@
 package usecase
 
 import (
-	"auth-service/internal/domain/dto"
-	"auth-service/internal/domain/model"
-	"auth-service/internal/middleware"
-	"auth-service/internal/repository"
 	"errors"
 	"time"
 
+	"github.com/andryansyhh/auth-service/internal/domain/dto"
+	"github.com/andryansyhh/auth-service/internal/domain/model"
+	"github.com/andryansyhh/auth-service/internal/middleware"
+	"github.com/andryansyhh/auth-service/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 

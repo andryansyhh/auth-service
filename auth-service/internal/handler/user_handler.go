@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"auth-service/internal/domain/dto"
-	"auth-service/internal/middleware"
-	"auth-service/internal/usecase"
 	"net/http"
 
+	"github.com/andryansyhh/auth-service/internal/domain/dto"
+	"github.com/andryansyhh/auth-service/internal/middleware"
+	"github.com/andryansyhh/auth-service/internal/usecase"
 	"github.com/gin-gonic/gin"
 )
 

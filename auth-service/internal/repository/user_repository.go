@@ -1,8 +1,7 @@
 package repository
 
 import (
-	"auth-service/internal/domain/model"
-
+	"github.com/andryansyhh/auth-service/internal/domain/model"
 	"github.com/jmoiron/sqlx"
 )
 
