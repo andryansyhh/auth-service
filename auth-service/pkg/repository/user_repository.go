@@ -19,16 +19,31 @@ func NewRepository(db *sqlx.DB) UserRepository {
 }
 
 func (r *userRepo) CreateUser(user *model.User) error {
-	_, err := r.db.NamedExec(`
-		INSERT INTO users (username, password, created_at, created_by)
-		VALUES (:username, :password, NOW(), :created_by)
-	`, user)
+	query := `INSERT INTO users (username, password, created_at, created_by)
+              VALUES (:username, :password, NOW(), :created_by)`
+
+	stmt, err := r.db.PrepareNamed(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(user)
 	return err
 }
 
 func (r *userRepo) GetUserByUsername(username string) (*model.User, error) {
 	var user model.User
-	err := r.db.Get(&user, "SELECT * FROM users WHERE username=$1 AND deleted_at IS NULL", username)
+
+	query := "SELECT * FROM users WHERE username=$1 AND deleted_at IS NULL"
+
+	stmt, err := r.db.Preparex(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&user, username)
 	if err != nil {
 		return nil, err
 	}
