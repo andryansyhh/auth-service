@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/andryansyhh/auth-service/cmd/config"
 	"github.com/andryansyhh/auth-service/pkg/handler"
 	"github.com/andryansyhh/auth-service/pkg/middleware"
+	tracer "github.com/andryansyhh/auth-service/pkg/otel"
 	"github.com/andryansyhh/auth-service/pkg/repository"
 	"github.com/andryansyhh/auth-service/pkg/usecase"
 	"github.com/gin-gonic/gin"
@@ -17,6 +21,16 @@ import (
 )
 
 func main() {
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
+	tp := tracer.InitTracerProvider("auth-service")
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			slog.Error("Error shutting down tracer provider", "error", err)
+		}
+	}()
 	cfg := config.Load()
 
 	db, err := sqlx.Connect("postgres", cfg.DBDSN)
