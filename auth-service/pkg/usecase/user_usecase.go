@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"errors"
 	"time"
 
 	"github.com/andryansyhh/auth-service/pkg/domain/dto"
@@ -29,7 +28,7 @@ func NewUserUsecase(userRepo repository.UserRepository, jwt *middleware.JWTManag
 func (s *userUsecase) Register(req dto.RegisterRequest) error {
 	_, err := s.userRepo.GetUserByUsername(req.Username)
 	if err == nil {
-		return errors.New("username already exists")
+		return dto.ErrConflict
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -50,11 +49,11 @@ func (s *userUsecase) Register(req dto.RegisterRequest) error {
 func (s *userUsecase) Login(req dto.LoginRequest) (*dto.AuthResponse, error) {
 	user, err := s.userRepo.GetUserByUsername(req.Username)
 	if err != nil {
-		return nil, errors.New("user not found")
+		return nil, dto.ErrNotFound
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, errors.New("invalid credentials")
+		return nil, dto.ErrUnauthorized
 	}
 
 	token, err := s.jwt.Generate(user)

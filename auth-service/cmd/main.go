@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/andryansyhh/auth-service/cmd/config"
 	"github.com/andryansyhh/auth-service/pkg/handler"
@@ -24,6 +25,11 @@ func main() {
 	}
 	defer db.Close()
 
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
+
 	if err := goose.SetDialect("postgres"); err != nil {
 		log.Fatalf("failed to set goose dialect: %v", err)
 	}
@@ -37,7 +43,12 @@ func main() {
 	uc := usecase.NewUserUsecase(repo, jwtManager)
 	handler := handler.NewUserHandler(uc, jwtManager)
 
-	r := gin.Default()
+	r := gin.New()
+
+	r.Use(gin.Recovery())
+	r.Use(middleware.StructuredLogger())
+	r.Use(middleware.ErrorHandler())
+
 	handler.RegisterRoutes(r)
 
 	addr := fmt.Sprintf(":%s", cfg.AppPort)

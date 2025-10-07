@@ -3,6 +3,7 @@ package main
 import (
 	"consumer/config"
 	"log"
+	"time"
 
 	"github.com/andryansyhh/auth-service/pkg/domain/dto"
 	"github.com/andryansyhh/auth-service/pkg/middleware"
@@ -14,18 +15,28 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
-	log.Printf("Consumer Service starting on port %s", cfg.AppPort)
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatalf("Fatal error (panic): %v", r)
+		}
+	}()
 
-	conn, err := sqlx.Connect("postgres", cfg.DBDSN)
+	cfg := config.Load()
+
+	db, err := sqlx.Connect("postgres", cfg.DBDSN)
 	if err != nil {
-		log.Fatalf("failed to connect to consumer db: %v", err)
+		log.Fatal("failed to connect database:", err)
 	}
-	defer conn.Close()
+	defer db.Close()
+
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
 	log.Println("Consumer successfully connected to its database!")
 
 	jwtManager := middleware.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiration)
-	authRepo := repository.NewRepository(conn)
+	authRepo := repository.NewRepository(db)
 	authUsecase := usecase.NewUserUsecase(authRepo, jwtManager)
 
 	err = authUsecase.Register(dto.RegisterRequest{
