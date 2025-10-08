@@ -39,7 +39,7 @@ func main() {
 	authRepo := repository.NewRepository(db)
 	authUsecase := usecase.NewUserUsecase(authRepo, jwtManager)
 
-	err = authUsecase.Register(dto.RegisterRequest{
+	err = authUsecase.Register(dto.LoginRegisterRequest{
 		Username: "test_from_consumer",
 		Password: "password",
 	})

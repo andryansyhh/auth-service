@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"time"
 
 	"github.com/andryansyhh/auth-service/pkg/domain/dto"
@@ -11,9 +12,12 @@ import (
 )
 
 type UserUsecase interface {
-	Register(req dto.RegisterRequest) error
-	Login(req dto.LoginRequest) (*dto.AuthResponse, error)
+	Register(req dto.LoginRegisterRequest) error
+	Login(req dto.LoginRegisterRequest) (*dto.AuthResponse, error)
 	GetProfile(username string) (*dto.UserResponse, error)
+	ListUsers() ([]dto.UserResponse, error)
+	UpdateUser(id int64, req dto.UpdateUserRequest) error
+	DeleteUser(id int64) error
 }
 
 type userUsecase struct {
@@ -25,10 +29,10 @@ func NewUserUsecase(userRepo repository.UserRepository, jwt *middleware.JWTManag
 	return &userUsecase{userRepo: userRepo, jwt: jwt}
 }
 
-func (s *userUsecase) Register(req dto.RegisterRequest) error {
+func (s *userUsecase) Register(req dto.LoginRegisterRequest) error {
 	_, err := s.userRepo.GetUserByUsername(req.Username)
 	if err == nil {
-		return dto.ErrConflict
+		return errors.New("username already exists")
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -42,18 +46,17 @@ func (s *userUsecase) Register(req dto.RegisterRequest) error {
 		Password:  string(hashed),
 		BaseModel: model.BaseModel{CreatedBy: &createdBy},
 	}
-
 	return s.userRepo.CreateUser(user)
 }
 
-func (s *userUsecase) Login(req dto.LoginRequest) (*dto.AuthResponse, error) {
+func (s *userUsecase) Login(req dto.LoginRegisterRequest) (*dto.AuthResponse, error) {
 	user, err := s.userRepo.GetUserByUsername(req.Username)
 	if err != nil {
-		return nil, dto.ErrNotFound
+		return nil, errors.New("user not found")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, dto.ErrUnauthorized
+		return nil, errors.New("invalid credentials")
 	}
 
 	token, err := s.jwt.Generate(user)
@@ -72,22 +75,53 @@ func (s *userUsecase) GetProfile(username string) (*dto.UserResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	resp := &dto.UserResponse{
+	return &dto.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		// CreatedBy: user.CreatedBy,
+	}, nil
+}
+
+func (s *userUsecase) ListUsers() ([]dto.UserResponse, error) {
+	users, err := s.userRepo.ListUsers()
+	if err != nil {
+		return nil, err
 	}
 
-	if user.UpdatedAt != nil {
-		// formatted := user.UpdatedAt.Format(time.RFC3339)
-		// resp.UpdatedAt = &formatted
+	var resp []dto.UserResponse
+	for _, u := range users {
+		resp = append(resp, dto.UserResponse{
+			ID:        u.ID,
+			Username:  u.Username,
+			CreatedAt: u.CreatedAt.Format(time.RFC3339),
+		})
 	}
-	if user.DeletedAt != nil {
-		// formatted := user.DeletedAt.Format(time.RFC3339)
-		// resp.DeletedAt = &formatted
-	}
-
 	return resp, nil
+}
+
+func (s *userUsecase) UpdateUser(id int64, req dto.UpdateUserRequest) error {
+	user, err := s.userRepo.GetUserByID(id)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	user.Username = req.Username
+	if req.Password != "" {
+		hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		user.Password = string(hashed)
+	} else {
+		user.Password = ""
+	}
+
+	return s.userRepo.UpdateUser(user)
+}
+
+func (s *userUsecase) DeleteUser(id int64) error {
+	if _, err := s.userRepo.GetUserByID(id); err != nil {
+		return errors.New("user not found")
+	}
+	return s.userRepo.DeleteUser(id)
 }

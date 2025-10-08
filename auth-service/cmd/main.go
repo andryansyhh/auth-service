@@ -62,6 +62,7 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(middleware.StructuredLogger())
 	r.Use(middleware.ErrorHandler())
+	r.Use(middleware.CORSMiddleware())
 
 	handler.RegisterRoutes(r)
 
